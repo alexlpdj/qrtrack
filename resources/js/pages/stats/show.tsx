@@ -98,7 +98,7 @@ export default function StatsShow({
 }: Props) {
     return (
         <>
-            <Head title={`Stats: ${qrCode.name}`} />
+            <Head title={`Estadísticas: ${qrCode.name}`} />
             <div className="flex flex-col gap-6 p-6">
                 <div>
                     <h1 className="text-2xl font-bold">{qrCode.name}</h1>
