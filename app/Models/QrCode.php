@@ -54,7 +54,7 @@ class QrCode extends Model
 
     public function getShortUrlAttribute(): string
     {
-        return url($this->code);
+        return url('go/'.$this->code);
     }
 
     public function getTotalClicksAttribute(): int

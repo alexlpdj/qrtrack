@@ -1,6 +1,6 @@
 # QR Track
 
-Sistema de **QR dinámicos** con panel de administración. Un QR dinámico significa que el destino es editable sin regenerar el código: el código corto (6 caracteres) siempre redirige a la URL guardada en base de datos, que puede cambiarse en cualquier momento.
+Sistema de **QR dinámicos** con panel de administración. Un QR dinámico significa que el destino es editable sin regenerar el código: el código (aleatorio de 6 caracteres o un slug personalizado) siempre redirige a la URL guardada en base de datos, que puede cambiarse en cualquier momento.
 
 ## Características
 
@@ -71,7 +71,7 @@ Creado por `AdminUserSeeder` (usa `firstOrCreate`, seguro de re-ejecutar). El re
 ## Rutas principales
 
 ```
-GET  /{code}                    Redirección pública del QR
+GET  /go/{code}                 Redirección pública del QR
 GET  /qr/{code}/image           Imagen SVG del QR
 GET  /admin                     Dashboard
 GET  /admin/qr-codes            Listado de QRs
@@ -81,7 +81,7 @@ GET  /admin/qr-codes/{id}/stats Estadísticas de un QR
 ## Base de datos
 
 ### `qr_codes`
-`id`, `code` (6 chars único), `name`, `destination`, `active`, `expires_at` (nullable), `timestamps`
+`id`, `user_id`, `code` (único — aleatorio de 6 o slug personalizado), `name`, `destination`, `active`, `expires_at` (nullable), `timestamps`
 
 ### `clicks`
 `id`, `qr_code_id` (FK cascade), `country`, `city`, `device`, `os`, `browser`, `referer`, `ip_hash`, `created_at`

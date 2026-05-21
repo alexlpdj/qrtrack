@@ -47,11 +47,21 @@ class QrCodeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'destination' => 'required|url|max:2048',
+            'code' => [
+                'nullable', 'string', 'min:3', 'max:32',
+                'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
+                'unique:qr_codes,code',
+            ],
             'active' => 'boolean',
             'expires_at' => 'nullable|date|after:now',
+        ], [
+            'code.regex' => 'El identificador solo admite minúsculas, números y guiones (sin empezar ni terminar en guion).',
         ]);
 
-        $validated['code'] = $this->generateUniqueCode();
+        // Identificador personalizado o, si se deja vacío, código aleatorio.
+        $validated['code'] = ! empty($validated['code'])
+            ? $validated['code']
+            : $this->generateUniqueCode();
         $validated['active'] = $validated['active'] ?? true;
         $validated['user_id'] = $request->user()->id;
 

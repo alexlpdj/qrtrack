@@ -1,6 +1,6 @@
 # QR Track — Contexto del proyecto
 
-Sistema de QR dinámicos con panel de administración. Un QR "dinámico" significa que el destino es editable sin regenerar el código: el código corto (6 chars) siempre redirige a la URL guardada en BD, que se puede cambiar en cualquier momento.
+Sistema de QR dinámicos con panel de administración. Un QR "dinámico" significa que el destino es editable sin regenerar el código: el código (aleatorio de 6 chars o un slug personalizado) siempre redirige a la URL guardada en BD, que se puede cambiar en cualquier momento.
 
 ## Stack
 
@@ -24,7 +24,7 @@ Sistema de QR dinámicos con panel de administración. Un QR "dinámico" signifi
 Campos estándar + `role` (`admin` | `employee`, default `employee`). Un admin gestiona todos los QRs y usuarios; un empleado solo sus propios QRs.
 
 ### `qr_codes`
-`id`, `user_id` (FK users, nullOnDelete — propietario), `code` (6 chars único), `name`, `destination` (URL editable), `active` (bool), `expires_at` (nullable), `timestamps`
+`id`, `user_id` (FK users, nullOnDelete — propietario), `code` (único, ≤64 — aleatorio de 6 o slug personalizado inmutable), `name`, `destination` (URL editable), `active` (bool), `expires_at` (nullable), `timestamps`
 
 ### `clicks`
 `id`, `qr_code_id` (FK cascade), `country`, `city`, `device` (mobile/tablet/desktop), `os`, `browser`, `referer`, `ip_hash` (SHA256, nunca IP en crudo), `created_at`
@@ -33,7 +33,7 @@ Campos estándar + `role` (`admin` | `employee`, default `employee`). Un admin g
 
 ```
 GET  /                          → welcome (pública)
-GET  /{code}                    → RedirectController@redirect (pública, regex [a-zA-Z0-9]{6})
+GET  /go/{code}                 → RedirectController@redirect (pública, regex [a-zA-Z0-9-]+)
 GET  /qr/{code}/image           → QrImageController@svg (pública)
 GET  /qr/{code}/download        → QrImageController@download (auth)
 
@@ -71,7 +71,7 @@ El layout por defecto (sidebar con Dashboard, Mis QRs y, para admins, Usuarios) 
 
 ## Flujo de un escaneo
 
-1. Usuario escanea → `GET /{code}`
+1. Usuario escanea → `GET /go/{code}`
 2. `RedirectController` busca el QR activo, despacha `TrackClickJob` con `dispatchAfterResponse()` y devuelve `302` al destino
 3. Tras enviar la respuesta, el job resuelve IP → país/ciudad, User-Agent → device/OS/browser, guarda en `clicks` (la redirección no espera a la geolocalización)
 

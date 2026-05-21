@@ -26,9 +26,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         ->middleware('admin');
 });
 
-// Redirect de QR (debe ir al final para no capturar otras rutas)
-Route::get('/{code}', [RedirectController::class, 'redirect'])
-    ->where('code', '[a-zA-Z0-9]{6}')
+// Redirect de QR — bajo el prefijo /go/ para aislar el espacio de códigos
+Route::get('/go/{code}', [RedirectController::class, 'redirect'])
+    ->where('code', '[a-zA-Z0-9-]+')
     ->name('qr.redirect');
 
 require __DIR__.'/settings.php';
