@@ -1,9 +1,21 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import { Copy, Download, BarChart2, Check } from 'lucide-react';
+import { Copy, Download, BarChart2, Check, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import admin from '@/routes/admin';
+
+const DOWNLOAD_FORMATS = [
+    { format: 'png', label: 'PNG' },
+    { format: 'jpg', label: 'JPG' },
+    { format: 'svg', label: 'SVG' },
+] as const;
 
 interface QrCodeDetail {
     id: number;
@@ -32,7 +44,8 @@ export default function QrCodesShow({ qrCode }: Props) {
     };
 
     const svgUrl = `/qr/${qrCode.code}/image`;
-    const downloadUrl = `/qr/${qrCode.code}/download`;
+    const downloadUrl = (format: string) =>
+        `/qr/${qrCode.code}/download?format=${format}`;
 
     return (
         <>
@@ -70,12 +83,27 @@ export default function QrCodesShow({ qrCode }: Props) {
                                     )}
                                     {copied ? 'Copiado' : 'Copiar URL'}
                                 </Button>
-                                <Button asChild variant="outline" size="sm">
-                                    <a href={downloadUrl} download>
-                                        <Download className="mr-2 h-4 w-4" />
-                                        Descargar
-                                    </a>
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm">
+                                            <Download className="mr-2 h-4 w-4" />
+                                            Descargar
+                                            <ChevronDown className="ml-1 h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        {DOWNLOAD_FORMATS.map((f) => (
+                                            <DropdownMenuItem key={f.format} asChild>
+                                                <a
+                                                    href={downloadUrl(f.format)}
+                                                    download
+                                                >
+                                                    {f.label}
+                                                </a>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                             <p className="font-mono text-xs text-muted-foreground">
                                 {qrCode.short_url}

@@ -13,7 +13,7 @@ Sistema de QR dinámicos con panel de administración. Un QR "dinámico" signifi
 
 | Paquete | Uso |
 |---|---|
-| `bacon/bacon-qr-code` v3 | Generación de QR en SVG (instalado vía Fortify, sin wrapper) |
+| `bacon/bacon-qr-code` v3 | Generación de QR — SVG con su renderer; PNG/JPG dibujados con GD desde la matriz del `Encoder` (instalado vía Fortify, sin wrapper) |
 | `jenssegers/agent` | Detección de dispositivo, OS y browser desde User-Agent |
 | `stevebauman/location` | Geolocalización por IP — driver `IpApi` (sin API key) |
 | `recharts` | Gráficas en el panel (Line, Area, Pie) |
