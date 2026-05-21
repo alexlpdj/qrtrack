@@ -13,7 +13,9 @@ class RedirectController extends Controller
     {
         $qrCode = QrCode::where('code', $code)->active()->firstOrFail();
 
-        TrackClickJob::dispatch(
+        // Se ejecuta después de enviar la respuesta al usuario (sin worker
+        // de colas): la redirección no espera a la geolocalización por IP.
+        TrackClickJob::dispatchAfterResponse(
             $qrCode->id,
             $request->ip() ?? '0.0.0.0',
             $request->userAgent() ?? '',

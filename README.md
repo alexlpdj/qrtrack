@@ -6,7 +6,7 @@ Sistema de **QR dinámicos** con panel de administración. Un QR dinámico signi
 
 - Generación de códigos QR en SVG
 - Destino editable sin regenerar el QR (redirect `302`)
-- Registro asíncrono de clicks (cola `database`)
+- Registro de clicks tras la respuesta, sin bloquear la redirección
 - Estadísticas: dispositivo, sistema operativo, navegador, país y ciudad
 - Geolocalización por IP (la IP nunca se almacena, solo su hash SHA256)
 - Panel de administración con dashboard y gráficas
@@ -58,11 +58,8 @@ composer run dev
 
 `composer run dev` arranca `php artisan serve`, `npm run dev` y `pail` a la vez.
 
-El worker de colas se ejecuta en una terminal aparte:
-
-```bash
-php artisan queue:work
-```
+Los clicks se registran con `dispatchAfterResponse()`, así que **no hace falta
+ningún worker de colas** ni proceso adicional.
 
 ## Acceso por defecto
 
