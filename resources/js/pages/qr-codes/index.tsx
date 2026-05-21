@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Eye, Pencil, Plus, Trash2, BarChart2 } from 'lucide-react';
+import { Download, Pencil, Plus, Trash2, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -55,6 +55,9 @@ export default function QrCodesIndex({ qrCodes }: Props) {
         });
     };
 
+    // Evita que el clic en un botón de acción dispare la navegación de la fila.
+    const stop = (e: React.MouseEvent) => e.stopPropagation();
+
     return (
         <>
             <Head title="Mis QRs" />
@@ -69,52 +72,118 @@ export default function QrCodesIndex({ qrCodes }: Props) {
                     </Button>
                 </div>
 
-                <div className="rounded-lg border">
+                <div className="overflow-hidden rounded-lg border">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/50">
                             <tr>
-                                <th className="px-4 py-3 text-left font-medium">Nombre</th>
-                                <th className="px-4 py-3 text-left font-medium">Código</th>
-                                <th className="px-4 py-3 text-left font-medium hidden md:table-cell">Destino</th>
-                                <th className="px-4 py-3 text-center font-medium">Clicks</th>
-                                <th className="px-4 py-3 text-center font-medium">Activo</th>
-                                <th className="px-4 py-3 text-right font-medium">Acciones</th>
+                                <th className="px-4 py-3 text-left font-medium">
+                                    Nombre
+                                </th>
+                                <th className="px-4 py-3 text-left font-medium">
+                                    Código
+                                </th>
+                                <th className="hidden px-4 py-3 text-left font-medium md:table-cell">
+                                    Destino
+                                </th>
+                                <th className="px-4 py-3 text-center font-medium">
+                                    Clicks
+                                </th>
+                                <th className="px-4 py-3 text-center font-medium">
+                                    Estado
+                                </th>
+                                <th className="px-4 py-3 text-right font-medium">
+                                    Acciones
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             {qrCodes.data.map((qr) => (
-                                <tr key={qr.id} className="border-t hover:bg-muted/20">
-                                    <td className="px-4 py-3 font-medium">{qr.name}</td>
-                                    <td className="px-4 py-3 font-mono text-xs">{qr.code}</td>
-                                    <td className="px-4 py-3 hidden md:table-cell max-w-xs">
-                                        <span className="truncate block text-muted-foreground" title={qr.destination}>
-                                            {qr.destination.length > 50
-                                                ? qr.destination.slice(0, 50) + '…'
-                                                : qr.destination}
+                                <tr
+                                    key={qr.id}
+                                    onClick={() =>
+                                        router.visit(
+                                            admin.qrCodes.show({
+                                                qr_code: qr.id,
+                                            }).url,
+                                        )
+                                    }
+                                    className="cursor-pointer border-t transition-colors hover:bg-muted/40"
+                                >
+                                    <td className="px-4 py-3 font-medium">
+                                        {qr.name}
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-xs">
+                                        {qr.code}
+                                    </td>
+                                    <td className="hidden max-w-xs px-4 py-3 md:table-cell">
+                                        <span
+                                            className="block truncate text-muted-foreground"
+                                            title={qr.destination}
+                                        >
+                                            {qr.destination}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-center font-semibold">
                                         {qr.total_clicks}
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <Badge variant={qr.active ? 'default' : 'secondary'}>
-                                            {qr.active ? 'Sí' : 'No'}
+                                        <Badge
+                                            variant={
+                                                qr.active
+                                                    ? 'default'
+                                                    : 'secondary'
+                                            }
+                                        >
+                                            {qr.active ? 'Activo' : 'Inactivo'}
                                         </Badge>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Button variant="ghost" size="icon" asChild title="Ver detalle">
-                                                <Link href={admin.qrCodes.show({ qr_code: qr.id }).url}>
-                                                    <Eye className="h-4 w-4" />
-                                                </Link>
+                                        <div
+                                            className="flex items-center justify-end gap-1"
+                                            onClick={stop}
+                                        >
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                asChild
+                                                title="Descargar QR (PNG)"
+                                            >
+                                                <a
+                                                    href={`/qr/${qr.code}/download?format=png`}
+                                                    download
+                                                >
+                                                    <Download className="h-4 w-4" />
+                                                </a>
                                             </Button>
-                                            <Button variant="ghost" size="icon" asChild title="Estadísticas">
-                                                <Link href={admin.qrCodes.stats({ qrCode: qr.id }).url}>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                asChild
+                                                title="Estadísticas"
+                                            >
+                                                <Link
+                                                    href={
+                                                        admin.qrCodes.stats({
+                                                            qrCode: qr.id,
+                                                        }).url
+                                                    }
+                                                >
                                                     <BarChart2 className="h-4 w-4" />
                                                 </Link>
                                             </Button>
-                                            <Button variant="ghost" size="icon" asChild title="Editar">
-                                                <Link href={admin.qrCodes.edit({ qr_code: qr.id }).url}>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                asChild
+                                                title="Editar"
+                                            >
+                                                <Link
+                                                    href={
+                                                        admin.qrCodes.edit({
+                                                            qr_code: qr.id,
+                                                        }).url
+                                                    }
+                                                >
                                                     <Pencil className="h-4 w-4" />
                                                 </Link>
                                             </Button>
@@ -123,7 +192,9 @@ export default function QrCodesIndex({ qrCodes }: Props) {
                                                 size="icon"
                                                 title="Eliminar"
                                                 className="text-destructive hover:text-destructive"
-                                                onClick={() => setDeleteId(qr.id)}
+                                                onClick={() =>
+                                                    setDeleteId(qr.id)
+                                                }
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
@@ -133,9 +204,15 @@ export default function QrCodesIndex({ qrCodes }: Props) {
                             ))}
                             {qrCodes.data.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                                    <td
+                                        colSpan={6}
+                                        className="px-4 py-8 text-center text-muted-foreground"
+                                    >
                                         No hay QRs creados todavía.{' '}
-                                        <Link href={admin.qrCodes.create().url} className="underline">
+                                        <Link
+                                            href={admin.qrCodes.create().url}
+                                            className="underline"
+                                        >
                                             Crea el primero
                                         </Link>
                                     </td>
@@ -153,7 +230,9 @@ export default function QrCodesIndex({ qrCodes }: Props) {
                                 variant={link.active ? 'default' : 'outline'}
                                 size="sm"
                                 disabled={!link.url}
-                                onClick={() => link.url && router.visit(link.url)}
+                                onClick={() =>
+                                    link.url && router.visit(link.url)
+                                }
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />
                         ))}
@@ -161,17 +240,26 @@ export default function QrCodesIndex({ qrCodes }: Props) {
                 )}
             </div>
 
-            <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+            <AlertDialog
+                open={deleteId !== null}
+                onOpenChange={(open) => !open && setDeleteId(null)}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar este QR?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            ¿Eliminar este QR?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Se eliminarán también todos los clicks registrados. Esta acción no se puede deshacer.
+                            Se eliminarán también todos los clicks
+                            registrados. Esta acción no se puede deshacer.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
                             Eliminar
                         </AlertDialogAction>
                     </AlertDialogFooter>

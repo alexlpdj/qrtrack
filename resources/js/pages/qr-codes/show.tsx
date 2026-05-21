@@ -1,8 +1,17 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import { Copy, Download, BarChart2, Check, ChevronDown } from 'lucide-react';
+import {
+    BarChart2,
+    Check,
+    ChevronDown,
+    Copy,
+    Download,
+    ExternalLink,
+    Pencil,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -33,6 +42,23 @@ interface Props {
     qrCode: QrCodeDetail;
 }
 
+function InfoRow({
+    label,
+    children,
+}: {
+    label: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="flex items-center justify-between gap-4 px-4 py-3">
+            <span className="text-sm text-muted-foreground">{label}</span>
+            <div className="min-w-0 text-right text-sm font-medium">
+                {children}
+            </div>
+        </div>
+    );
+}
+
 export default function QrCodesShow({ qrCode }: Props) {
     const [copied, setCopied] = useState(false);
 
@@ -50,89 +76,164 @@ export default function QrCodesShow({ qrCode }: Props) {
     return (
         <>
             <Head title={`QR: ${qrCode.name}`} />
-            <div className="flex flex-col gap-6 p-6 max-w-2xl">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold">{qrCode.name}</h1>
-                        <p className="mt-1 text-sm text-muted-foreground break-all">
+            <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
+                {/* Cabecera */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <h1 className="truncate text-2xl font-bold">
+                                {qrCode.name}
+                            </h1>
+                            <Badge
+                                variant={
+                                    qrCode.active ? 'default' : 'secondary'
+                                }
+                            >
+                                {qrCode.active ? 'Activo' : 'Inactivo'}
+                            </Badge>
+                        </div>
+                        <p className="mt-1 truncate text-sm text-muted-foreground">
                             {qrCode.destination}
                         </p>
                     </div>
-                    <Button asChild variant="outline">
-                        <Link href={admin.qrCodes.stats({ qrCode: qrCode.id }).url}>
-                            <BarChart2 className="mr-2 h-4 w-4" />
-                            Estadísticas
-                        </Link>
-                    </Button>
+                    <div className="flex shrink-0 gap-2">
+                        <Button asChild variant="outline">
+                            <Link
+                                href={
+                                    admin.qrCodes.edit({ qr_code: qrCode.id })
+                                        .url
+                                }
+                            >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                            </Link>
+                        </Button>
+                        <Button asChild>
+                            <Link
+                                href={
+                                    admin.qrCodes.stats({ qrCode: qrCode.id })
+                                        .url
+                                }
+                            >
+                                <BarChart2 className="mr-2 h-4 w-4" />
+                                Estadísticas
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
 
-                <div className="flex flex-col gap-6 md:flex-row">
-                    <Card className="flex-shrink-0">
-                        <CardContent className="flex flex-col items-center gap-4 pt-6">
+                <div className="grid gap-6 md:grid-cols-[260px_1fr]">
+                    {/* QR */}
+                    <Card>
+                        <CardContent className="flex flex-col items-center gap-4 p-6">
                             <img
                                 src={svgUrl}
                                 alt={`QR ${qrCode.name}`}
-                                className="h-48 w-48"
+                                className="h-48 w-48 rounded-lg border bg-white p-2"
                             />
-                            <div className="flex gap-2">
-                                <Button onClick={copyUrl} variant="outline" size="sm">
-                                    {copied ? (
-                                        <Check className="mr-2 h-4 w-4 text-green-500" />
-                                    ) : (
-                                        <Copy className="mr-2 h-4 w-4" />
-                                    )}
-                                    {copied ? 'Copiado' : 'Copiar URL'}
-                                </Button>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm">
-                                            <Download className="mr-2 h-4 w-4" />
-                                            Descargar
-                                            <ChevronDown className="ml-1 h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        {DOWNLOAD_FORMATS.map((f) => (
-                                            <DropdownMenuItem key={f.format} asChild>
-                                                <a
-                                                    href={downloadUrl(f.format)}
-                                                    download
-                                                >
-                                                    {f.label}
-                                                </a>
-                                            </DropdownMenuItem>
-                                        ))}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                            <p className="font-mono text-xs text-muted-foreground">
-                                {qrCode.short_url}
-                            </p>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full"
+                                    >
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Descargar
+                                        <ChevronDown className="ml-auto h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width)">
+                                    {DOWNLOAD_FORMATS.map((f) => (
+                                        <DropdownMenuItem
+                                            key={f.format}
+                                            asChild
+                                        >
+                                            <a
+                                                href={downloadUrl(f.format)}
+                                                download
+                                            >
+                                                {f.label}
+                                            </a>
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </CardContent>
                     </Card>
 
-                    <div className="flex flex-col gap-4 flex-1">
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Total clicks
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-3xl font-bold">{qrCode.total_clicks}</p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Clicks hoy
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-3xl font-bold">{qrCode.clicks_today}</p>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    {/* Información */}
+                    <Card>
+                        <CardContent className="divide-y p-0">
+                            <InfoRow label="URL corta">
+                                <button
+                                    type="button"
+                                    onClick={copyUrl}
+                                    className="inline-flex items-center gap-1.5 font-mono text-xs hover:text-primary"
+                                >
+                                    {qrCode.short_url}
+                                    {copied ? (
+                                        <Check className="h-3.5 w-3.5 text-green-500" />
+                                    ) : (
+                                        <Copy className="h-3.5 w-3.5" />
+                                    )}
+                                </button>
+                            </InfoRow>
+                            <InfoRow label="Destino">
+                                <a
+                                    href={qrCode.destination}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 truncate hover:text-primary"
+                                >
+                                    <span className="truncate">
+                                        {qrCode.destination}
+                                    </span>
+                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                </a>
+                            </InfoRow>
+                            <InfoRow label="Código">
+                                <span className="font-mono">
+                                    {qrCode.code}
+                                </span>
+                            </InfoRow>
+                            <InfoRow label="Caduca">
+                                {qrCode.expires_at ? (
+                                    new Date(
+                                        qrCode.expires_at,
+                                    ).toLocaleDateString('es-ES')
+                                ) : (
+                                    <span className="text-muted-foreground">
+                                        Nunca
+                                    </span>
+                                )}
+                            </InfoRow>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Métricas */}
+                <div className="grid grid-cols-2 gap-4">
+                    <Card>
+                        <CardContent className="p-4">
+                            <p className="text-sm text-muted-foreground">
+                                Total clicks
+                            </p>
+                            <p className="mt-1 text-3xl font-bold">
+                                {qrCode.total_clicks}
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4">
+                            <p className="text-sm text-muted-foreground">
+                                Clicks hoy
+                            </p>
+                            <p className="mt-1 text-3xl font-bold">
+                                {qrCode.clicks_today}
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </>
