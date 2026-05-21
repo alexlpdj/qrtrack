@@ -12,9 +12,11 @@ use Inertia\Response;
 
 class QrCodeController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $qrCodes = QrCode::withCount('clicks')
+        $qrCodes = QrCode::visibleTo($request->user())
+            ->with('user:id,name')
+            ->withCount('clicks')
             ->latest()
             ->paginate(15)
             ->through(fn ($qr) => [
@@ -26,6 +28,7 @@ class QrCodeController extends Controller
                 'expires_at' => $qr->expires_at?->toISOString(),
                 'total_clicks' => $qr->clicks_count,
                 'short_url' => $qr->short_url,
+                'owner' => $qr->user?->name,
                 'created_at' => $qr->created_at->toISOString(),
             ]);
 
@@ -50,6 +53,7 @@ class QrCodeController extends Controller
 
         $validated['code'] = $this->generateUniqueCode();
         $validated['active'] = $validated['active'] ?? true;
+        $validated['user_id'] = $request->user()->id;
 
         QrCode::create($validated);
 
@@ -59,6 +63,8 @@ class QrCodeController extends Controller
 
     public function show(QrCode $qrCode): Response
     {
+        $this->authorize('view', $qrCode);
+
         return Inertia::render('qr-codes/show', [
             'qrCode' => [
                 'id' => $qrCode->id,
@@ -76,6 +82,8 @@ class QrCodeController extends Controller
 
     public function edit(QrCode $qrCode): Response
     {
+        $this->authorize('update', $qrCode);
+
         return Inertia::render('qr-codes/edit', [
             'qrCode' => [
                 'id' => $qrCode->id,
@@ -90,6 +98,8 @@ class QrCodeController extends Controller
 
     public function update(Request $request, QrCode $qrCode): RedirectResponse
     {
+        $this->authorize('update', $qrCode);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'destination' => 'required|url|max:2048',
@@ -105,6 +115,8 @@ class QrCodeController extends Controller
 
     public function destroy(QrCode $qrCode): RedirectResponse
     {
+        $this->authorize('delete', $qrCode);
+
         $qrCode->delete();
 
         return redirect()->route('admin.qr-codes.index')

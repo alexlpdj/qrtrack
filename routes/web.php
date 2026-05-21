@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\QrCodeController;
 use App\Http\Controllers\Admin\StatsController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\QrImageController;
 use App\Http\Controllers\RedirectController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('qr-codes', QrCodeController::class);
     Route::get('qr-codes/{qrCode}/stats', [StatsController::class, 'show'])->name('qr-codes.stats');
+
+    // Gestión de usuarios — solo administradores
+    Route::resource('users', UserController::class)
+        ->except('show')
+        ->middleware('admin');
 });
 
 // Redirect de QR (debe ir al final para no capturar otras rutas)

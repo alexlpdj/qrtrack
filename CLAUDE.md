@@ -20,8 +20,11 @@ Sistema de QR dinámicos con panel de administración. Un QR "dinámico" signifi
 
 ## Base de datos
 
+### `users`
+Campos estándar + `role` (`admin` | `employee`, default `employee`). Un admin gestiona todos los QRs y usuarios; un empleado solo sus propios QRs.
+
 ### `qr_codes`
-`id`, `code` (6 chars único), `name`, `destination` (URL editable), `active` (bool), `expires_at` (nullable), `timestamps`
+`id`, `user_id` (FK users, nullOnDelete — propietario), `code` (6 chars único), `name`, `destination` (URL editable), `active` (bool), `expires_at` (nullable), `timestamps`
 
 ### `clicks`
 `id`, `qr_code_id` (FK cascade), `country`, `city`, `device` (mobile/tablet/desktop), `os`, `browser`, `referer`, `ip_hash` (SHA256, nunca IP en crudo), `created_at`
@@ -43,7 +46,16 @@ GET  /admin/qr-codes/{qr_code}/edit   → Admin\QrCodeController@edit
 PUT  /admin/qr-codes/{qr_code}        → Admin\QrCodeController@update
 DEL  /admin/qr-codes/{qr_code}        → Admin\QrCodeController@destroy
 GET  /admin/qr-codes/{qrCode}/stats   → Admin\StatsController@show
+
+GET  /admin/users               → Admin\UserController@index   (solo admin)
+GET  /admin/users/create        → Admin\UserController@create  (solo admin)
+POST /admin/users               → Admin\UserController@store   (solo admin)
+GET  /admin/users/{user}/edit   → Admin\UserController@edit     (solo admin)
+PUT  /admin/users/{user}        → Admin\UserController@update   (solo admin)
+DEL  /admin/users/{user}        → Admin\UserController@destroy  (solo admin)
 ```
+
+Las rutas de usuarios usan el middleware `admin` (`EnsureUserIsAdmin`). El acceso a cada QR se controla con `QrCodePolicy` (view/update/delete: admin o propietario) y el scope `QrCode::visibleTo($user)`.
 
 ## Páginas React (`resources/js/pages/`)
 
@@ -53,8 +65,9 @@ GET  /admin/qr-codes/{qrCode}/stats   → Admin\StatsController@show
 - `qr-codes/edit.tsx` — edita name, destination, active, expires_at
 - `qr-codes/show.tsx` — imagen SVG + copiar URL + descargar + stats básicas
 - `stats/show.tsx` — AreaChart + 3 PieCharts (device/país/browser) + tabla clicks recientes
+- `users/index.tsx` `users/create.tsx` `users/edit.tsx` — gestión de usuarios (solo admin)
 
-El layout por defecto (sidebar con Dashboard y Mis QRs) se aplica a todas las páginas salvo `welcome` y las de `auth/`. Los breadcrumbs se pasan como `Component.layout = { breadcrumbs: [...] }`.
+El layout por defecto (sidebar con Dashboard, Mis QRs y, para admins, Usuarios) se aplica a todas las páginas salvo `welcome` y las de `auth/`. Los breadcrumbs se pasan como `Component.layout = { breadcrumbs: [...] }`.
 
 ## Flujo de un escaneo
 
@@ -87,7 +100,7 @@ npm run build
 
 ## Decisiones de diseño relevantes
 
-- **Registro público deshabilitado** en `config/fortify.php` — solo existe el usuario admin
+- **Registro público deshabilitado** en `config/fortify.php` — las altas las hace un admin desde `/admin/users`
 - **`bacon/bacon-qr-code` usado directamente** (sin el wrapper `simplesoftwareio/simple-qrcode`) porque Fortify requiere v3 y el wrapper solo soporta v2
 - **IP nunca se almacena** — solo el hash SHA256 para privacidad
 - **`expires_at` nullable** — si es null, el QR no caduca nunca

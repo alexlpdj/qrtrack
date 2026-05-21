@@ -5,20 +5,29 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Click;
 use App\Models\QrCode;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $totalQrCodes = QrCode::count();
-        $totalClicks = Click::count();
-        $clicksToday = Click::whereDate('created_at', today())->count();
-        $clicksThisWeek = Click::where('created_at', '>=', now()->startOfWeek())->count();
+        // Métricas limitadas a los QRs visibles para el usuario: un admin ve
+        // las globales, un empleado solo las de sus propios QRs.
+        $visibleQrIds = QrCode::visibleTo($request->user())->pluck('id');
 
-        $topQrCodes = QrCode::withCount('clicks')
+        $clicksQuery = fn (): Builder => Click::whereIn('qr_code_id', $visibleQrIds);
+
+        $totalQrCodes = $visibleQrIds->count();
+        $totalClicks = $clicksQuery()->count();
+        $clicksToday = $clicksQuery()->whereDate('created_at', today())->count();
+        $clicksThisWeek = $clicksQuery()->where('created_at', '>=', now()->startOfWeek())->count();
+
+        $topQrCodes = QrCode::visibleTo($request->user())
+            ->withCount('clicks')
             ->orderByDesc('clicks_count')
             ->limit(5)
             ->get()
@@ -28,7 +37,8 @@ class DashboardController extends Controller
                 'total_clicks' => $qr->clicks_count,
             ]);
 
-        $clicksLast30Days = Click::select(
+        $clicksLast30Days = $clicksQuery()
+            ->select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('COUNT(*) as count')
             )

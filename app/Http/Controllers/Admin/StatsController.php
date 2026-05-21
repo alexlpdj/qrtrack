@@ -13,6 +13,8 @@ class StatsController extends Controller
 {
     public function show(QrCode $qrCode): Response
     {
+        $this->authorize('view', $qrCode);
+
         $clicksByDay = Click::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('COUNT(*) as count')

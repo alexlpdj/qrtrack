@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Download, Pencil, Plus, Trash2, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ interface QrCodeItem {
     expires_at: string | null;
     total_clicks: number;
     short_url: string;
+    owner: string | null;
     created_at: string;
 }
 
@@ -46,7 +47,9 @@ interface Props {
 }
 
 export default function QrCodesIndex({ qrCodes }: Props) {
+    const isAdmin = usePage().props.auth.user?.role === 'admin';
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const colSpan = isAdmin ? 7 : 6;
 
     const handleDelete = () => {
         if (deleteId === null) return;
@@ -85,6 +88,11 @@ export default function QrCodesIndex({ qrCodes }: Props) {
                                 <th className="hidden px-4 py-3 text-left font-medium md:table-cell">
                                     Destino
                                 </th>
+                                {isAdmin && (
+                                    <th className="hidden px-4 py-3 text-left font-medium lg:table-cell">
+                                        Propietario
+                                    </th>
+                                )}
                                 <th className="px-4 py-3 text-center font-medium">
                                     Clicks
                                 </th>
@@ -123,6 +131,11 @@ export default function QrCodesIndex({ qrCodes }: Props) {
                                             {qr.destination}
                                         </span>
                                     </td>
+                                    {isAdmin && (
+                                        <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">
+                                            {qr.owner ?? '—'}
+                                        </td>
+                                    )}
                                     <td className="px-4 py-3 text-center font-semibold">
                                         {qr.total_clicks}
                                     </td>
@@ -205,7 +218,7 @@ export default function QrCodesIndex({ qrCodes }: Props) {
                             {qrCodes.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={6}
+                                        colSpan={colSpan}
                                         className="px-4 py-8 text-center text-muted-foreground"
                                     >
                                         No hay QRs creados todavía.{' '}
