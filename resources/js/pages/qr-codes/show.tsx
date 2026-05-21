@@ -51,8 +51,10 @@ function InfoRow({
 }) {
     return (
         <div className="flex items-center justify-between gap-4 px-4 py-3">
-            <span className="text-sm text-muted-foreground">{label}</span>
-            <div className="min-w-0 text-right text-sm font-medium">
+            <span className="shrink-0 text-sm text-muted-foreground">
+                {label}
+            </span>
+            <div className="flex min-w-0 flex-1 justify-end text-sm font-medium">
                 {children}
             </div>
         </div>
@@ -163,19 +165,21 @@ export default function QrCodesShow({ qrCode }: Props) {
                     </Card>
 
                     {/* Información */}
-                    <Card>
+                    <Card className="min-w-0">
                         <CardContent className="divide-y p-0">
                             <InfoRow label="URL corta">
                                 <button
                                     type="button"
                                     onClick={copyUrl}
-                                    className="inline-flex items-center gap-1.5 font-mono text-xs hover:text-primary"
+                                    className="flex min-w-0 items-center gap-1.5 hover:text-primary"
                                 >
-                                    {qrCode.short_url}
+                                    <span className="truncate font-mono text-xs">
+                                        {qrCode.short_url}
+                                    </span>
                                     {copied ? (
-                                        <Check className="h-3.5 w-3.5 text-green-500" />
+                                        <Check className="h-3.5 w-3.5 shrink-0 text-green-500" />
                                     ) : (
-                                        <Copy className="h-3.5 w-3.5" />
+                                        <Copy className="h-3.5 w-3.5 shrink-0" />
                                     )}
                                 </button>
                             </InfoRow>
@@ -184,7 +188,7 @@ export default function QrCodesShow({ qrCode }: Props) {
                                     href={qrCode.destination}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 truncate hover:text-primary"
+                                    className="flex min-w-0 items-center gap-1 hover:text-primary"
                                 >
                                     <span className="truncate">
                                         {qrCode.destination}
